@@ -17,24 +17,39 @@ const intent = (DOM, Time) => {
   const KEY_ENTER = 13;
   const KEY_TAB = 9;
   const acSelector = '.autocomplete';
+  const removeSelector = '.remove';
 
   // Raw DOM selector events
   const input$ = DOM.select(acSelector).events('input');
   const keydown$ = DOM.select(acSelector).events('keydown');
+  const clickRemove$ = DOM.select(removeSelector).events('click');
 
   // Intermediate event streams
   const enterPressed$ = keydown$.compose(Time.debounce(1)).filter(({keyCode}) => keyCode === KEY_ENTER);
 
   // Compose intent streams
   const search$ = input$.compose(Time.debounce(100)).map(ev => ev.target.value).filter(search => search.length > 0).startWith('');
+  const remove$ = clickRemove$.compose(Time.debounce(100)).map(getCoinIdFromClass);
 
   // Combine intents into actions object
   return {
     search$: search$,
     addCoin$: addCoinStream(enterPressed$, search$),
-    removeCoin$: removeCoinStream()
+    removeCoin$: remove$
   }
 };
+
+/**
+ * Given a DOM event, tries to parse coin ID from event target's classname
+ * @param {*} ev 
+ */
+const getCoinIdFromClass = ev => {
+  const idClass = Array.from(ev.target.classList).find(cssClass => cssClass.startsWith("id-"));
+  if (!idClass) {
+    return null;
+  }
+  return idClass.slice(3);
+}
 
 /**
  * Build stream of actions to add coins to watch list
@@ -50,19 +65,11 @@ const addCoinStream = (enterPressed$, search$) => {
 };
 
 /**
- * Build stream of actions to remove coins from list
- */
-const removeCoinStream = () => {
-
-  return xs.empty();
-};
-
-/**
  * Render page header
  */
-const renderHeader = () => <div>
+const renderHeader = searchText => <div>
   <h1>Crypto Watcher</h1>
-  <input type="text" className="autocomplete"></input>
+  <input type="text" className="autocomplete" value={searchText}></input>
 </div>
 
 const renderMessage = message => {
@@ -90,6 +97,7 @@ const renderCoinTable = coins => {
       <td>{coin.get('symbol')}</td>
       <td>${coin.get('price_usd')}</td>
       <td>{coin.get('price_btc')}</td>
+      <td><button className={"remove id-" + id}>Remove</button></td>
     </tr>);
   }, Immutable.List());
 
@@ -100,6 +108,7 @@ const renderCoinTable = coins => {
       <th>Symbol</th>
       <th>USD</th>
       <th>BTC</th>
+      <th> </th>
     </tr>
     {tableRows.toArray()}
   </table>
@@ -111,7 +120,7 @@ const renderCoinTable = coins => {
  */
 const view = state$ => state$.map(state => {
   return <div>
-    {renderHeader()}
+    {renderHeader(state.get('searchText'))}
     {renderMessage(state.get('message'))}
     {renderCoinTable(state.get('coins'))}
   </div>
@@ -132,6 +141,21 @@ const model = (ticker$, actions) => {
     return Immutable.List(JSON.parse(res.text));
   }).startWith("Loading...");
 
+  // Given search text, determine if coin matches it
+  const matchCoin = (search, coin) => {
+    const lowerSearch = search.toLowerCase();
+    if (coin.id.toLowerCase() === lowerSearch) {
+      return true;
+    }
+    if (coin.name.toLowerCase() === lowerSearch) {
+      return true;
+    }
+    if (coin.symbol.toLowerCase() === lowerSearch) {
+      return true;
+    }
+    return false;
+  };
+
   const addCoinReducer$ = actions.addCoin$.map(coinToAdd => state => {
 
     const coins = state.get('coins');
@@ -142,9 +166,9 @@ const model = (ticker$, actions) => {
     }
 
     // Try to find new coin in ticker data
-    const newCoin = state.get('ticker').find(item => item.id === coinToAdd);
+    const newCoin = state.get('ticker').find(item => matchCoin(coinToAdd, item));
     const newCoins = coins.set(newCoin ? newCoin.id : coinToAdd, Immutable.Map(newCoin));
-    return state.set('coins', newCoins);
+    return state.set('coins', newCoins).set('searchText', '');
   });
 
   const removeCoinReducer$ = actions.removeCoin$.map(coinToRemove => state => {
@@ -160,9 +184,9 @@ const model = (ticker$, actions) => {
       return state.set('message', ticker);
     }
 
-    // If there are any coins, (re)populate their values from ticker data
+    // For all coins, (re)populate their values from ticker data
     const coins = state.get('coins').map((coin, id) => {
-      return Immutable.Map(ticker.find(item => item.id === id))
+      return Immutable.Map(ticker.find(item => matchCoin(id, item)))
     });
 
     // Return state with updated coins and ticker data
@@ -171,10 +195,11 @@ const model = (ticker$, actions) => {
 
   const reducer$ = xs.merge(addCoinReducer$, removeCoinReducer$, tickerReducer$);
 
-  const state$ = reducer$.fold((state, reducer) => reducer(state), Immutable.Map({
+  const state$ = reducer$.fold((state, reducer) => reducer(state.set('searchText', actions.search$)), Immutable.Map({
     coins: Immutable.OrderedMap(),
     ticker: Immutable.List(),
-    message: null
+    message: null,
+    searchText: ''
   }));
 
   return state$;
