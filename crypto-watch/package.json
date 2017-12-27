@@ -9,6 +9,7 @@
     "@cycle/dom": "18.3.0",
     "@cycle/http": "^14.8.0",
     "@cycle/run": "3.3.0",
+    "@cycle/storage": "^5.0.3",
     "@cycle/time": "^0.10.1",
     "immutable": "^3.8.2",
     "xstream": "11.0.0"
