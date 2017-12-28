@@ -245,10 +245,11 @@ const model = (ticker$, storedCoinIds$, actions) => {
 export function App (sources) {
 
   // Request HTTP ticker data immediately when app loads
-  const httpRequest$ = xs.of({
+  const reloadTime = 60000; // refresh every minute
+  const httpRequest$ = xs.combine(xs.of({
     url: 'https://api.coinmarketcap.com/v1/ticker/',
     category: 'ticker'
-  });
+  }), xs.periodic(reloadTime).startWith(0)).map(([request]) => request);
 
   // HTTP ticker response stream
   const ticker$ = sources.HTTP.select('ticker').flatten();
