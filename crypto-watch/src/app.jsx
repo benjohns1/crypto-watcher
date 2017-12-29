@@ -26,7 +26,7 @@ const intent = (DOM, Time) => {
   const clickRemove$ = DOM.select(removeSelector).events('click');
   const addCoinButton$ = DOM.select(addCoinSelector).events('click');
 
-  // Intermediate event streams
+  // Intent event streams
   const inputText$ = input$.map(ev => ev.target.value);
   const enterPressed$ = keydown$.filter(({keyCode}) => keyCode === KEY_ENTER);
 
@@ -67,9 +67,18 @@ const addCoinStream = (enterPressed$, addCoinButton$, inputText$) => {
  * Render page header
  */
 const renderHeader = state => {
-  return <div>
+  return <div className="my-4">
     <h1>Crypto Watcher</h1>
-    <input type="text" className="autocomplete" value={state.get('searchText')}></input><button className="addCoin">Add</button>
+    <p className="lead mb-4">Simplest way to watch your favorite cryptocurrencies</p>
+    <div className="form-inline">
+      <div className="form-group">
+        <label for="addTokenInput" className="sr-only">Token or symbol</label>
+        <input type="text" id="addTokenInput" className="autocomplete form-control" value={state.get('searchText')} placeholder="Token or symbol"></input>
+      </div>
+      <div className="form-group">
+        <button className="addCoin btn btn-primary ml-sm-3">Add</button>
+      </div>
+    </div>
   </div>
 }
 
@@ -81,45 +90,63 @@ const renderMessage = message => {
   return <h2>{message}</h2>
 }
 
+const renderActionButton = (id, action, label) => <button className={action + " id-" + id + "  btn btn-sm btn-outline-danger"}>{label}</button>;
+
 /**
  * Render coin table
  * @param {*} coins 
  */
 const renderCoinTable = coins => {
   if (coins.size <= 0) {
-    return <p>No coins to watch</p>
+    return <p>Not watching any coins! Add a token by name or ticker symbol.</p>
   }
 
   // Build table rows
   const tableRows = coins.reduce((rows, coin, id) => {
+
     if (!coin || !coin.get('id')) {
       return rows.push(<tr>
         <td>{id}</td>
         <td></td>
         <td></td>
         <td></td>
-        <td><button className={"remove id-" + id}>Remove</button></td>
+        <td></td>
+        <td></td>
+        <td>Token not found</td>
+        <td>{renderActionButton(id, "remove", "Remove")}</td>
       </tr>);
     }
+    const hourlyChange = parseFloat(coin.get('percent_change_1h'));
+    const dailyChange = parseFloat(coin.get('percent_change_24h'));
     return rows.push(<tr>
       <td>{coin.get('name')}</td>
       <td>{coin.get('symbol')}</td>
-      <td>${coin.get('price_usd')}</td>
-      <td>{coin.get('price_btc')}</td>
-      <td><button className={"remove id-" + id}>Remove</button></td>
+      <td className="text-right"><span className={"mr-sm-4" + (hourlyChange > 0 ? " text-success" : " text-danger")}>{hourlyChange.toFixed(2)}%</span></td>
+      <td className="text-right"><span className={"mr-sm-4" + (dailyChange > 0 ? " text-success" : " text-danger")}>{dailyChange.toFixed(2)}%</span></td>
+      <td className="text-right"><span className="mr-sm-4">${parseFloat(coin.get('price_usd')).toFixed(2)}</span></td>
+      <td className="text-right"><span className="mr-sm-4">{parseFloat(coin.get('price_btc')).toFixed(8)}</span></td>
+      <td></td>
+      <td>{renderActionButton(id, "remove", "Remove")}</td>
     </tr>);
   }, Immutable.List());
 
   // Add table header and insert rows into template
-  return <table>
-    <tr>
-      <th>Name</th>
-      <th>Symbol</th>
-      <th>USD</th>
-      <th>BTC</th>
-      <th> </th>
-    </tr>
-    {tableRows.toArray()}
+  return <table className="table table-striped table-sm">
+    <thead>
+      <tr>
+        <th scope="col">Name</th>
+        <th scope="col">Symbol</th>
+        <th scope="col" className="text-right"><span className="mr-sm-4">Hourly Change</span></th>
+        <th scope="col" className="text-right"><span className="mr-sm-4">24 Hour Change</span></th>
+        <th scope="col" className="text-right"><span className="mr-sm-4">USD</span></th>
+        <th scope="col" className="text-right"><span className="mr-sm-4">BTC</span></th>
+        <th scope="col"></th>
+        <th scope="col">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {tableRows.toArray()}
+    </tbody>
   </table>
 }
 
@@ -128,11 +155,34 @@ const renderCoinTable = coins => {
  * @param {*} state$ 
  */
 const view = state$ => state$.map(state => <div>
+  <main className="container">
     {renderHeader(state)}
     {renderMessage(state.get('message'))}
     {renderCoinTable(state.get('coins'))}
-  </div>
-);
+  </main>
+  <footer className="footer text-muted font-weight-light">
+    <div className="container">
+      <div className="float-left">
+        <p>About this app
+          <ul>
+            <li>Your personal list is saved locally, it is <em>not</em> transmitted over the wire</li>
+            <li>Prices are auto-updated from <a href="https://coinmarketcap.com/">coinmarketcap</a> every 5 minutes</li>
+            <li>Available tokens are currently limited to the top 100</li>
+            <li>Built with <a href="https://cycle.js.org/">Cycle.js</a> and <a href="https://getbootstrap.com/">Bootstrap 4</a></li>
+            <li><a href="https://github.com/benjohns1/crypto-watch">Github</a></li>
+          </ul>
+        </p>
+      </div>
+      <div className="float-right">
+        <p>Donate &#9786;<br/>
+        BTC: 38NF99xwLwbGvtqZSzzBG3d5LbzNEX3hAS<br/>
+        ETH: 0xd48C957E59b7b1C20787c6eb6f7A8b82151b3a50<br/>
+        LTC: MWqT3GCZVWi1LcDLBhMTgXqyXEBYtwt7Fb</p>
+        <p>Copyright &copy; 2017 Ben Johns | <a href="https://en.wikipedia.org/wiki/MIT_License">MIT</a></p>
+      </div>
+    </div>
+  </footer>
+</div>);
 
 /**
  * Given actions and data streams, define new state stream
