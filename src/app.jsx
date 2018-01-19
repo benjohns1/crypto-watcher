@@ -27,7 +27,7 @@ const intent = (DOM, Time) => {
   const addCoinButton$ = DOM.select(addCoinSelector).events('click');
 
   // Intent event streams
-  const inputText$ = input$.map(ev => ev.target.value);
+  const inputText$ = input$.map(ev => ev.target.value.trim()).filter(text => text !== "");
   const enterPressed$ = keydown$.filter(({keyCode}) => keyCode === KEY_ENTER);
 
   // Compose intent streams
@@ -121,7 +121,7 @@ const renderCoinTable = coins => {
     const dailyChange = parseFloat(coin.get('percent_change_24h'));
     const weeklyChange = parseFloat(coin.get('percent_change_7d'));
     return rows.push(<tr>
-      <td className="d-none d-sm-block"><a href={"https://coinmarketcap.com/currencies/" + id} target="_blank">{coin.get('name')}</a></td>
+      <td className="d-none d-sm-block">{coin.get('name')}</td>
       <td><a href={"https://coinmarketcap.com/currencies/" + id} target="_blank">{coin.get('symbol')}</a></td>
       <td className="text-right"><span className={"mr-sm-4" + (hourlyChange > 0 ? " text-success" : " text-danger")}>{hourlyChange.toFixed(2)}%</span></td>
       <td className="text-right"><span className={"mr-sm-4" + (dailyChange > 0 ? " text-success" : " text-danger")}>{dailyChange.toFixed(2)}%</span></td>

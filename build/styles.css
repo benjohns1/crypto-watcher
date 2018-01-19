@@ -5,13 +5,12 @@ html {
     min-height: 100%;
 }
 body {
-    margin-bottom: 170px;
+    margin-bottom: 270px;
 }
 .footer {
     position: absolute;
     bottom: 0;
     width: 100%;
-    height: 170px;
+    height: 250px;
     padding-top: 10px;
-    background-color: rgba(0, 0, 0, 0.05);
 }
