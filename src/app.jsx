@@ -106,23 +106,26 @@ const renderCoinTable = coins => {
 
     if (!coin || !coin.get('id')) {
       return rows.push(<tr>
-        <td>{id}</td>
+        <td className="d-none d-sm-block"></td>
         <td></td>
         <td></td>
         <td></td>
         <td></td>
         <td></td>
-        <td>Token not found</td>
+        <td></td>
+        <td>{id} token not found</td>
         <td>{renderActionButton(id, "remove", "Remove")}</td>
       </tr>);
     }
     const hourlyChange = parseFloat(coin.get('percent_change_1h'));
     const dailyChange = parseFloat(coin.get('percent_change_24h'));
+    const weeklyChange = parseFloat(coin.get('percent_change_7d'));
     return rows.push(<tr>
-      <td>{coin.get('name')}</td>
-      <td>{coin.get('symbol')}</td>
+      <td className="d-none d-sm-block"><a href={"https://coinmarketcap.com/currencies/" + id} target="_blank">{coin.get('name')}</a></td>
+      <td><a href={"https://coinmarketcap.com/currencies/" + id} target="_blank">{coin.get('symbol')}</a></td>
       <td className="text-right"><span className={"mr-sm-4" + (hourlyChange > 0 ? " text-success" : " text-danger")}>{hourlyChange.toFixed(2)}%</span></td>
       <td className="text-right"><span className={"mr-sm-4" + (dailyChange > 0 ? " text-success" : " text-danger")}>{dailyChange.toFixed(2)}%</span></td>
+      <td className="text-right"><span className={"mr-sm-4" + (weeklyChange > 0 ? " text-success" : " text-danger")}>{weeklyChange.toFixed(2)}%</span></td>
       <td className="text-right"><span className="mr-sm-4">${parseFloat(coin.get('price_usd')).toFixed(2)}</span></td>
       <td className="text-right"><span className="mr-sm-4">{parseFloat(coin.get('price_btc')).toFixed(8)}</span></td>
       <td></td>
@@ -134,10 +137,11 @@ const renderCoinTable = coins => {
   return <table className="table table-striped table-sm">
     <thead>
       <tr>
-        <th scope="col">Name</th>
+        <th scope="col" className="d-none d-sm-block">Name</th>
         <th scope="col">Symbol</th>
-        <th scope="col" className="text-right"><span className="mr-sm-4">Hourly Change</span></th>
-        <th scope="col" className="text-right"><span className="mr-sm-4">24 Hour Change</span></th>
+        <th scope="col" className="text-right"><span className="mr-sm-4">1h Change</span></th>
+        <th scope="col" className="text-right"><span className="mr-sm-4">24h Change</span></th>
+        <th scope="col" className="text-right"><span className="mr-sm-4">7d Change</span></th>
         <th scope="col" className="text-right"><span className="mr-sm-4">USD</span></th>
         <th scope="col" className="text-right"><span className="mr-sm-4">BTC</span></th>
         <th scope="col"></th>
@@ -154,36 +158,37 @@ const renderCoinTable = coins => {
  * Render main app view
  * @param {*} state$ 
  */
-const view = state$ => state$.map(state => <div>
-  <main className="container">
-    {renderHeader(state)}
-    {renderMessage(state.get('message'))}
-    {renderCoinTable(state.get('coins'))}
-  </main>
-  <footer className="footer text-muted font-weight-light">
-    <div className="container">
-      <div className="row">
-        <div className="col-md">
-          <p>About this app
-            <ul>
-              <li>Your personal list is saved locally, it is <em>not</em> transmitted over the wire</li>
-              <li>Prices are auto-updated from <a href="https://coinmarketcap.com/">coinmarketcap</a> every 5 minutes</li>
-              <li>Available tokens are currently limited to the top 100</li>
-              <li><a href="https://github.com/benjohns1/crypto-watch">Github</a> - built with <a href="https://cycle.js.org/">Cycle.js</a>, <a href="https://facebook.github.io/immutable-js/">Immutable.js</a> and <a href="https://getbootstrap.com/">Bootstrap 4</a></li>
-            </ul>
-          </p>
-        </div>
-        <div className="col-md">
-          <p>Donate &#9786;<br/>
-          BTC: 38NF99xwLwbGvtqZSzzBG3d5LbzNEX3hAS<br/>
-          ETH: 0xd48C957E59b7b1C20787c6eb6f7A8b82151b3a50<br/>
-          LTC: MWqT3GCZVWi1LcDLBhMTgXqyXEBYtwt7Fb</p>
-          <p>Copyright &copy; 2017 Ben Johns | <a href="https://en.wikipedia.org/wiki/MIT_License">MIT</a></p>
+const view = state$ => state$.map(state => {
+  return <div>
+    <main className="container">
+      {renderHeader(state)}
+      {state.get('loading') ? renderMessage(state.get('message')) : renderCoinTable(state.get('coins'))}
+    </main>
+    <footer className="footer text-muted font-weight-light">
+      <div className="container">
+        <div className="row">
+          <div className="col-md">
+            <p>About this app
+              <ul>
+                <li>Your personal list is saved locally, it is <em>not</em> transmitted over the wire</li>
+                <li>Prices are auto-updated from <a href="https://coinmarketcap.com/">coinmarketcap</a> every 5 minutes</li>
+                <li>Available tokens are currently limited to the top 100</li>
+                <li><a href="https://github.com/benjohns1/crypto-watch">Github</a> - built with <a href="https://cycle.js.org/">Cycle.js</a>, <a href="https://facebook.github.io/immutable-js/">Immutable.js</a> and <a href="https://getbootstrap.com/">Bootstrap 4</a></li>
+              </ul>
+            </p>
+          </div>
+          <div className="col-md">
+            <p>Donate &#9786;<br/>
+            BTC: 38NF99xwLwbGvtqZSzzBG3d5LbzNEX3hAS<br/>
+            ETH: 0xd48C957E59b7b1C20787c6eb6f7A8b82151b3a50<br/>
+            LTC: MWqT3GCZVWi1LcDLBhMTgXqyXEBYtwt7Fb</p>
+            <p>Copyright &copy; 2017 Ben Johns | <a href="https://en.wikipedia.org/wiki/MIT_License">MIT</a></p>
+          </div>
         </div>
       </div>
-    </div>
-  </footer>
-</div>);
+    </footer>
+  </div>
+});
 
 /**
  * Given actions and data streams, define new state stream
@@ -252,16 +257,16 @@ const model = (ticker$, storedCoinIds$, actions) => {
 
     // If ticker doesn't have data yet, print its value as a message
     if (!Immutable.List.isList(ticker)) {
-      return state.set('message', ticker);
+      return state.set('message', ticker).set('loading', true);
     }
 
     // For all coins, (re)populate their values from ticker data
     const coins = state.get('coins').map((coin, id) => {
-      return ticker.find(item => matchCoin(id, item))
+      return ticker.find(item => matchCoin(id, item));
     });
 
     // Return state with updated coins and ticker data
-    return state.set('message', null).set('coins', coins).set('ticker', ticker);
+    return state.set('message', null).set('coins', coins).set('ticker', ticker).set('loading', false);
   });
 
   // Runs whenever stored coin ID list response is triggered
@@ -281,12 +286,13 @@ const model = (ticker$, storedCoinIds$, actions) => {
     return state.set('searchText', inputText);
   });
 
-  const reducer$ = xs.merge(addCoinReducer$, removeCoinReducer$, tickerReducer$, storedCoinIdsReducer$, inputTextReducer$);
+  const reducer$ = xs.merge(tickerReducer$, addCoinReducer$, removeCoinReducer$, storedCoinIdsReducer$, inputTextReducer$);
 
   const state$ = reducer$.fold((state, reducer) => reducer(state), Immutable.Map({
     coins: Immutable.OrderedMap(),
     ticker: Immutable.List(),
     message: null,
+    loading: false,
     searchText: ''
   }));
 
