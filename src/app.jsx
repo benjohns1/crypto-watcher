@@ -162,23 +162,24 @@ const view = state$ => state$.map(state => <div>
   </main>
   <footer className="footer text-muted font-weight-light">
     <div className="container">
-      <div className="float-left">
-        <p>About this app
-          <ul>
-            <li>Your personal list is saved locally, it is <em>not</em> transmitted over the wire</li>
-            <li>Prices are auto-updated from <a href="https://coinmarketcap.com/">coinmarketcap</a> every 5 minutes</li>
-            <li>Available tokens are currently limited to the top 100</li>
-            <li>Built with <a href="https://cycle.js.org/">Cycle.js</a> and <a href="https://getbootstrap.com/">Bootstrap 4</a></li>
-            <li><a href="https://github.com/benjohns1/crypto-watch">Github</a></li>
-          </ul>
-        </p>
-      </div>
-      <div className="float-right">
-        <p>Donate &#9786;<br/>
-        BTC: 38NF99xwLwbGvtqZSzzBG3d5LbzNEX3hAS<br/>
-        ETH: 0xd48C957E59b7b1C20787c6eb6f7A8b82151b3a50<br/>
-        LTC: MWqT3GCZVWi1LcDLBhMTgXqyXEBYtwt7Fb</p>
-        <p>Copyright &copy; 2017 Ben Johns | <a href="https://en.wikipedia.org/wiki/MIT_License">MIT</a></p>
+      <div className="row">
+        <div className="col-md">
+          <p>About this app
+            <ul>
+              <li>Your personal list is saved locally, it is <em>not</em> transmitted over the wire</li>
+              <li>Prices are auto-updated from <a href="https://coinmarketcap.com/">coinmarketcap</a> every 5 minutes</li>
+              <li>Available tokens are currently limited to the top 100</li>
+              <li><a href="https://github.com/benjohns1/crypto-watch">Github</a> - built with <a href="https://cycle.js.org/">Cycle.js</a>, <a href="https://facebook.github.io/immutable-js/">Immutable.js</a> and <a href="https://getbootstrap.com/">Bootstrap 4</a></li>
+            </ul>
+          </p>
+        </div>
+        <div className="col-md">
+          <p>Donate &#9786;<br/>
+          BTC: 38NF99xwLwbGvtqZSzzBG3d5LbzNEX3hAS<br/>
+          ETH: 0xd48C957E59b7b1C20787c6eb6f7A8b82151b3a50<br/>
+          LTC: MWqT3GCZVWi1LcDLBhMTgXqyXEBYtwt7Fb</p>
+          <p>Copyright &copy; 2017 Ben Johns | <a href="https://en.wikipedia.org/wiki/MIT_License">MIT</a></p>
+        </div>
       </div>
     </div>
   </footer>
